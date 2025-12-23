@@ -1,0 +1,1717 @@
+# صفحه جزییات رویداد
+
+یک صفحه زیبا و کامل برای نمایش جزییات رویداد طراحی کردم که قابلیت ذخیره، اشتراک‌گذاری و رزرو دارد:
+
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جزییات رویداد | دنیای رویدادها</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+            min-height: 100vh;
+            color: #1e1b4b;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Background Elements */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            background: linear-gradient(45deg, #fdf2f8 0%, #fce7f3 50%, #fae8ff 100%);
+        }
+        
+        /* Floating 3D Spheres */
+        .sphere-1 {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ec4899, #db2777);
+            opacity: 0.15;
+            filter: blur(40px);
+            top: 10%;
+            right: 5%;
+            animation: floatSphere1 25s infinite ease-in-out;
+            z-index: -1;
+        }
+        
+        .sphere-2 {
+            position: fixed;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 70% 30%, #a855f7, #8b5cf6);
+            opacity: 0.12;
+            filter: blur(35px);
+            bottom: 15%;
+            left: 10%;
+            animation: floatSphere2 20s infinite ease-in-out;
+            z-index: -1;
+        }
+        
+        .sphere-3 {
+            position: fixed;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, #f472b6, #ec4899);
+            opacity: 0.1;
+            filter: blur(30px);
+            top: 50%;
+            right: 15%;
+            animation: floatSphere3 30s infinite ease-in-out;
+            z-index: -1;
+        }
+        
+        /* Glass Morphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            box-shadow: 
+                0 20px 60px rgba(236, 72, 153, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 30px 80px rgba(236, 72, 153, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border-color: rgba(236, 72, 153, 0.2);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(236, 72, 153, 0.4);
+        }
+        
+        /* Shimmer Effect */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                transparent 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 100%
+            );
+            transform: rotate(30deg);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(30deg); }
+            100% { transform: translateX(100%) rotate(30deg); }
+        }
+        
+        /* Floating Animations */
+        @keyframes floatSphere1 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(40px, 20px) scale(1.1);
+            }
+            50% {
+                transform: translate(20px, 40px) scale(0.9);
+            }
+            75% {
+                transform: translate(-20px, 20px) scale(1.05);
+            }
+        }
+        
+        @keyframes floatSphere2 {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(-30px, 30px) scale(1.15);
+            }
+            66% {
+                transform: translate(30px, -20px) scale(0.85);
+            }
+        }
+        
+        @keyframes floatSphere3 {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            50% {
+                transform: translate(25px, 25px) rotate(180deg);
+            }
+        }
+        
+        /* Fade In Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        /* Rating Stars */
+        .rating-stars {
+            color: #fbbf24;
+            font-size: 1.2rem;
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            height: 8px;
+            background: rgba(236, 72, 153, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ec4899, #a855f7);
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+        
+        /* Countdown Timer */
+        .countdown-box {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        /* Tags */
+        .event-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(236, 72, 153, 0.1);
+            border-radius: 20px;
+            color: #db2777;
+            font-size: 0.9rem;
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .event-tag:hover {
+            background: rgba(236, 72, 153, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Save Button Animation */
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .heart-beat {
+            animation: heartBeat 0.6s ease;
+        }
+        
+        /* Map Container */
+        .map-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            position: relative;
+        }
+        
+        /* FAQ Item */
+        .faq-item {
+            border-bottom: 1px solid rgba(236, 72, 153, 0.1);
+            overflow: hidden;
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            opacity: 1;
+            padding: 1rem 0;
+        }
+        
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+        
+        /* Ticket Types */
+        .ticket-card {
+            border: 2px solid rgba(236, 72, 153, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .ticket-card:hover {
+            border-color: #ec4899;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(236, 72, 153, 0.15);
+        }
+        
+        .ticket-card.popular {
+            border-color: #ec4899;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(168, 85, 247, 0.05));
+        }
+        
+        /* Organizer Badge */
+        .organizer-badge {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Share Modal */
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .share-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Review Card */
+        .review-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(236, 72, 153, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(236, 72, 153, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Background Elements -->
+    <div class="bg-pattern"></div>
+    <div class="sphere-1"></div>
+    <div class="sphere-2"></div>
+    <div class="sphere-3"></div>
+    
+    <!-- Back Button -->
+    <nav class="container mx-auto px-4 py-6">
+        <a href="javascript:history.back()" class="inline-flex items-center gap-3 text-gray-600 hover:text-pink-600 transition-colors">
+            <i class="fas fa-arrow-right"></i>
+            بازگشت به صفحه قبل
+        </a>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column (Main Content) -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Hero Section -->
+                <div class="glass-card overflow-hidden">
+                    <!-- Event Image -->
+                    <div class="relative h-96">
+                        <img 
+                            src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=600&fit=crop" 
+                            alt="همایش نوآوری فناوری"
+                            class="w-full h-full object-cover"
+                        >
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        
+                        <!-- Badges -->
+                        <div class="absolute top-6 left-6 flex gap-3">
+                            <span class="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-full text-sm font-semibold shadow-lg">
+                                <i class="fas fa-star ml-2"></i> ویژه
+                            </span>
+                            <span class="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-full text-sm font-semibold shadow-lg">
+                                <i class="fas fa-fire ml-2"></i> پربازدید
+                            </span>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="absolute top-6 right-6 flex gap-3">
+                            <button id="saveBtn" onclick="toggleSave()" class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                                <i id="saveIcon" class="far fa-bookmark text-xl"></i>
+                            </button>
+                            <button onclick="shareEvent()" class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                                <i class="fas fa-share-alt text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Category -->
+                        <div class="absolute bottom-24 right-6">
+                            <span class="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full text-sm font-semibold shadow-lg">
+                                کنفرانس تخصصی
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Title & Info -->
+                    <div class="p-8">
+                        <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-6">
+                            <div>
+                                <h1 class="text-4xl font-bold text-gray-900 mb-4">همایش نوآوری فناوری</h1>
+                                <p class="text-xl text-gray-600 mb-6">
+                                    همایش سالیانه نوآوری در فناوری با حضور برترین شرکت‌های تکنولوژی جهان
+                                </p>
+                                
+                                <!-- Rating -->
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="rating-stars">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                    <span class="text-gray-700 font-medium">۴.۸ (۱۲۴۵ نظر)</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Price -->
+                            <div class="bg-gradient-to-r from-pink-500 to-purple-500 text-white p-6 rounded-2xl shadow-xl">
+                                <div class="text-sm opacity-90">شروع قیمت از</div>
+                                <div class="text-3xl font-bold mb-2">۲۹۰,۰۰۰ تومان</div>
+                                <div class="text-sm opacity-90">قیمت برای هر نفر</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+                            <div class="text-center p-4 bg-white/50 rounded-xl">
+                                <div class="text-3xl font-bold text-pink-600 mb-2">۸۶۵</div>
+                                <div class="text-gray-600">شرکت‌کننده</div>
+                            </div>
+                            <div class="text-center p-4 bg-white/50 rounded-xl">
+                                <div class="text-3xl font-bold text-purple-600 mb-2">۱,۲۰۰</div>
+                                <div class="text-gray-600">ظرفیت کل</div>
+                            </div>
+                            <div class="text-center p-4 bg-white/50 rounded-xl">
+                                <div class="text-3xl font-bold text-indigo-600 mb-2">۷۲%</div>
+                                <div class="text-gray-600">اشغال شده</div>
+                            </div>
+                            <div class="text-center p-4 bg-white/50 rounded-xl">
+                                <div class="text-3xl font-bold text-blue-600 mb-2">۱۵</div>
+                                <div class="text-gray-600">سخنران</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mb-6">
+                            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                <span>ظرفیت رویداد</span>
+                                <span>۷۲% پر شده - ۳۳۵ جای خالی</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 72%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Event Details Tabs -->
+                <div class="glass-card">
+                    <!-- Tab Navigation -->
+                    <div class="border-b border-gray-200">
+                        <div class="flex overflow-x-auto">
+                            <button class="tab-btn active px-6 py-4 text-lg font-medium text-gray-600 hover:text-pink-600 border-b-2 border-transparent hover:border-pink-600 whitespace-nowrap" data-tab="details">
+                                <i class="fas fa-info-circle ml-2"></i>
+                                جزییات رویداد
+                            </button>
+                            <button class="tab-btn px-6 py-4 text-lg font-medium text-gray-600 hover:text-pink-600 border-b-2 border-transparent hover:border-pink-600 whitespace-nowrap" data-tab="speakers">
+                                <i class="fas fa-microphone ml-2"></i>
+                                سخنرانان
+                            </button>
+                            <button class="tab-btn px-6 py-4 text-lg font-medium text-gray-600 hover:text-pink-600 border-b-2 border-transparent hover:border-pink-600 whitespace-nowrap" data-tab="agenda">
+                                <i class="fas fa-calendar-alt ml-2"></i>
+                                برنامه زمانی
+                            </button>
+                            <button class="tab-btn px-6 py-4 text-lg font-medium text-gray-600 hover:text-pink-600 border-b-2 border-transparent hover:border-pink-600 whitespace-nowrap" data-tab="reviews">
+                                <i class="fas fa-star ml-2"></i>
+                                نظرات (۱۲۴۵)
+                            </button>
+                            <button class="tab-btn px-6 py-4 text-lg font-medium text-gray-600 hover:text-pink-600 border-b-2 border-transparent hover:border-pink-600 whitespace-nowrap" data-tab="faq">
+                                <i class="fas fa-question-circle ml-2"></i>
+                                سوالات متداول
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="p-8">
+                        <!-- Details Tab -->
+                        <div id="details-tab" class="tab-content active">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-6">درباره این رویداد</h3>
+                            <div class="prose prose-lg text-gray-600 space-y-6">
+                                <p>
+                                    همایش نوآوری فناوری به عنوان بزرگترین گردهمایی سالانه فعالان حوزه تکنولوژی در ایران، 
+                                    فرصتی استثنایی برای شبکه‌سازی، یادگیری و مشارکت در آخرین تحولات صنعت فناوری است.
+                                </p>
+                                <p>
+                                    در این رویداد سه‌روزه، بیش از ۱۵ سخنران برتر ملی و بین‌المللی در زمینه‌های مختلف فناوری 
+                                    از جمله هوش مصنوعی، بلاک‌چین، توسعه نرم‌افزار، امنیت سایبری و نوآوری دیجیتال تجربیات 
+                                    خود را به اشتراک می‌گذارند.
+                                </p>
+                                
+                                <h4 class="text-xl font-bold text-gray-900 mt-8 mb-4">سرفصل‌های اصلی</h4>
+                                <ul class="list-disc pr-6 space-y-2">
+                                    <li>هوش مصنوعی و یادگیری ماشین در کسب‌وکار</li>
+                                    <li>توسعه‌های نوین در دنیای وب و موبایل</li>
+                                    <li>امنیت سایبری و حفاظت از داده‌ها</li>
+                                    <li>بلاک‌چین و فناوری‌های مالی نوین</li>
+                                    <li>اینترنت اشیا و شهرهای هوشمند</li>
+                                    <li>تبدیل دیجیتال در سازمان‌ها</li>
+                                </ul>
+                                
+                                <h4 class="text-xl font-bold text-gray-900 mt-8 mb-4">مزایای شرکت در رویداد</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-white">
+                                            <i class="fas fa-certificate"></i>
+                                        </div>
+                                        <span>گواهی‌نامه معتبر شرکت در رویداد</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white">
+                                            <i class="fas fa-network-wired"></i>
+                                        </div>
+                                        <span>فرصت شبکه‌سازی با حرفه‌ای‌ها</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white">
+                                            <i class="fas fa-handshake"></i>
+                                        </div>
+                                        <span>ملاقات با شرکت‌های برتر استخدام</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center text-white">
+                                            <i class="fas fa-gift"></i>
+                                        </div>
+                                        <span>هدایای ویژه و قرعه‌کشی</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Speakers Tab -->
+                        <div id="speakers-tab" class="tab-content hidden">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-6">سخنرانان رویداد</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Speaker 1 -->
+                                <div class="flex items-center gap-4 p-6 bg-white/50 rounded-xl">
+                                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop" 
+                                         alt="دکتر علی رضایی"
+                                         class="w-20 h-20 rounded-full object-cover">
+                                    <div>
+                                        <h4 class="text-lg font-bold text-gray-900">دکتر علی رضایی</h4>
+                                        <p class="text-gray-600 text-sm mb-2">مدیر فنی مایکروسافت ایران</p>
+                                        <div class="flex gap-2">
+                                            <span class="px-3 py-1 bg-gradient-to-r from-blue-500/10 to-blue-500/20 text-blue-600 rounded-full text-xs">
+                                                هوش مصنوعی
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Speaker 2 -->
+                                <div class="flex items-center gap-4 p-6 bg-white/50 rounded-xl">
+                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b786d4d9?w=200&h=200&fit=crop" 
+                                         alt="مهندس مریم کریمی"
+                                         class="w-20 h-20 rounded-full object-cover">
+                                    <div>
+                                        <h4 class="text-lg font-bold text-gray-900">مهندس مریم کریمی</h4>
+                                        <p class="text-gray-600 text-sm mb-2">کارشناس ارشد امنیت سایبری</p>
+                                        <div class="flex gap-2">
+                                            <span class="px-3 py-1 bg-gradient-to-r from-red-500/10 to-red-500/20 text-red-600 rounded-full text-xs">
+                                                امنیت سایبری
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Speaker 3 -->
+                                <div class="flex items-center gap-4 p-6 bg-white/50 rounded-xl">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop" 
+                                         alt="دکتر حسین احمدی"
+                                         class="w-20 h-20 rounded-full object-cover">
+                                    <div>
+                                        <h4 class="text-lg font-bold text-gray-900">دکتر حسین احمدی</h4>
+                                        <p class="text-gray-600 text-sm mb-2">پژوهشگر بلاک‌چین دانشگاه شریف</p>
+                                        <div class="flex gap-2">
+                                            <span class="px-3 py-1 bg-gradient-to-r from-green-500/10 to-green-500/20 text-green-600 rounded-full text-xs">
+                                                بلاک‌چین
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Speaker 4 -->
+                                <div class="flex items-center gap-4 p-6 bg-white/50 rounded-xl">
+                                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop" 
+                                         alt="مهندس سارا محمدی"
+                                         class="w-20 h-20 rounded-full object-cover">
+                                    <div>
+                                        <h4 class="text-lg font-bold text-gray-900">مهندس سارا محمدی</h4>
+                                        <p class="text-gray-600 text-sm mb-2">مدیر محصول دیجی‌کالا</p>
+                                        <div class="flex gap-2">
+                                            <span class="px-3 py-1 bg-gradient-to-r from-purple-500/10 to-purple-500/20 text-purple-600 rounded-full text-xs">
+                                                محصول دیجیتال
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Agenda Tab -->
+                        <div id="agenda-tab" class="tab-content hidden">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-6">برنامه زمانی رویداد</h3>
+                            <div class="space-y-6">
+                                <!-- Day 1 -->
+                                <div class="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-2xl">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center text-white">
+                                            <span class="font-bold">۱</span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xl font-bold text-gray-900">روز اول: هوش مصنوعی و فناوری‌های نوین</h4>
+                                            <p class="text-gray-600">۱۵ فروردین ۱۴۰۴</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="flex gap-4 p-4 bg-white rounded-xl">
+                                            <div class="text-center">
+                                                <div class="text-lg font-bold text-pink-600">۱۰:۰۰</div>
+                                                <div class="text-sm text-gray-500">صبح</div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h5 class="font-bold text-gray-900 mb-2">افتتاحیه و سخنرانی کلیدی</h5>
+                                                <p class="text-gray-600 text-sm">دکتر علی رضایی - آینده هوش مصنوعی در کسب‌وکار</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex gap-4 p-4 bg-white rounded-xl">
+                                            <div class="text-center">
+                                                <div class="text-lg font-bold text-pink-600">۱۲:۰۰</div>
+                                                <div class="text-sm text-gray-500">ظهر</div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h5 class="font-bold text-gray-900 mb-2">کارگاه عملی</h5>
+                                                <p class="text-gray-600 text-sm">پیاده‌سازی مدل‌های یادگیری ماشین</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Day 2 -->
+                                <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-2xl">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white">
+                                            <span class="font-bold">۲</span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xl font-bold text-gray-900">روز دوم: امنیت و توسعه</h4>
+                                            <p class="text-gray-600">۱۶ فروردین ۱۴۰۴</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="flex gap-4 p-4 bg-white rounded-xl">
+                                            <div class="text-center">
+                                                <div class="text-lg font-bold text-blue-600">۰۹:۳۰</div>
+                                                <div class="text-sm text-gray-500">صبح</div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h5 class="font-bold text-gray-900 mb-2">امنیت سایبری در عصر دیجیتال</h5>
+                                                <p class="text-gray-600 text-sm">مهندس مریم کریمی - راهکارهای محافظت از داده‌ها</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Reviews Tab -->
+                        <div id="reviews-tab" class="tab-content hidden">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-gray-900 mb-2">نظرات شرکت‌کنندگان</h3>
+                                    <div class="flex items-center gap-4">
+                                        <div class="text-4xl font-bold gradient-text">۴.۸</div>
+                                        <div>
+                                            <div class="rating-stars mb-1">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star-half-alt"></i>
+                                            </div>
+                                            <div class="text-gray-600">بر اساس ۱۲۴۵ نظر</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="openReviewModal()" class="btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                    نوشتن نظر
+                                </button>
+                            </div>
+                            
+                            <!-- Reviews List -->
+                            <div class="space-y-6">
+                                <!-- Review 1 -->
+                                <div class="review-card">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=100&h=100&fit=crop" 
+                                                 alt="محمد حسینی"
+                                                 class="w-12 h-12 rounded-full object-cover">
+                                            <div>
+                                                <h4 class="font-bold text-gray-900">محمد حسینی</h4>
+                                                <div class="rating-stars text-sm">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="text-gray-500 text-sm">۲ هفته پیش</span>
+                                    </div>
+                                    <p class="text-gray-600">
+                                        یکی از بهترین رویدادهایی که تا به حال شرکت کردم. سازماندهی عالی، محتوای ارزشمند و فرصت‌های شبکه‌سازی فوق‌العاده. حتما سال بعد هم شرکت می‌کنم.
+                                    </p>
+                                </div>
+                                
+                                <!-- Review 2 -->
+                                <div class="review-card">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-3">
+                                            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" 
+                                                 alt="فاطمه محمدی"
+                                                 class="w-12 h-12 rounded-full object-cover">
+                                            <div>
+                                                <h4 class="font-bold text-gray-900">فاطمه محمدی</h4>
+                                                <div class="rating-stars text-sm">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="far fa-star"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="text-gray-500 text-sm">۱ ماه پیش</span>
+                                    </div>
+                                    <p class="text-gray-600">
+                                        کیفیت سخنرانی‌ها بسیار بالا بود. به ویژه کارگاه عملی هوش مصنوعی خیلی مفید بود. فقط فضا کمی شلوغ بود و صندلی‌ها راحت نبودند.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Load More -->
+                            <button class="w-full py-4 mt-8 text-center text-pink-600 font-medium hover:text-pink-700 transition-colors">
+                                <i class="fas fa-chevron-down ml-2"></i>
+                                مشاهده نظرات بیشتر
+                            </button>
+                        </div>
+                        
+                        <!-- FAQ Tab -->
+                        <div id="faq-tab" class="tab-content hidden">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-6">سوالات متداول</h3>
+                            <div class="space-y-4">
+                                <!-- FAQ 1 -->
+                                <div class="faq-item">
+                                    <div class="faq-question flex items-center justify-between p-4 cursor-pointer bg-white/50 rounded-xl" onclick="toggleFAQ(this)">
+                                        <span class="font-medium text-gray-900">آیا امکان پرداخت اقساطی وجود دارد؟</span>
+                                        <i class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                                    </div>
+                                    <div class="faq-answer max-h-0 opacity-0 transition-all duration-300">
+                                        <p class="text-gray-600">بله، برای بلیت‌های VIP و پریمیوم امکان پرداخت در ۳ قسط فراهم شده است. برای استفاده از این امکان، هنگام رزرو گزینه پرداخت اقساطی را انتخاب کنید.</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- FAQ 2 -->
+                                <div class="faq-item">
+                                    <div class="faq-question flex items-center justify-between p-4 cursor-pointer bg-white/50 rounded-xl" onclick="toggleFAQ(this)">
+                                        <span class="font-medium text-gray-900">آیا گواهی حضور ارائه می‌شود؟</span>
+                                        <i class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                                    </div>
+                                    <div class="faq-answer max-h-0 opacity-0 transition-all duration-300">
+                                        <p class="text-gray-600">بله، به تمام شرکت‌کنندگان گواهی معتبر حضور در رویداد ارائه می‌شود. گواهی به صورت دیجیتال بلافاصله پس از پایان رویداد و به صورت فیزیکی تا یک هفته بعد ارسال می‌شود.</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- FAQ 3 -->
+                                <div class="faq-item">
+                                    <div class="faq-question flex items-center justify-between p-4 cursor-pointer bg-white/50 rounded-xl" onclick="toggleFAQ(this)">
+                                        <span class="font-medium text-gray-900">آیا امکان کنسلی و بازگشت وجه وجود دارد؟</span>
+                                        <i class="fas fa-chevron-down text-gray-400 transition-transform"></i>
+                                    </div>
+                                    <div class="faq-answer max-h-0 opacity-0 transition-all duration-300">
+                                        <p class="text-gray-600">بله، تا ۷ روز قبل از شروع رویداد امکان کنسلی با کسر ۱۰٪ کارمزد وجود دارد. پس از این تاریخ، امکان بازگشت وجه وجود ندارد اما می‌توانید بلیت خود را به شخص دیگری انتقال دهید.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location & Map -->
+                <div class="glass-card p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">محل برگزاری</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <div class="mb-6">
+                                <h4 class="text-lg font-bold text-gray-900 mb-4">مرکز همایش‌های بین‌المللی تهران</h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-map-marker-alt text-pink-500"></i>
+                                        <span class="text-gray-600">تهران، خیابان ولیعصر، مرکز همایش‌های بین‌المللی</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-phone text-purple-500"></i>
+                                        <span class="text-gray-600">۰۲۱-۸۸۵۶۳۲۱۰</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <i class="fas fa-clock text-indigo-500"></i>
+                                        <span class="text-gray-600">همه روزه ۸:۰۰ تا ۲۲:۰۰</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Transportation -->
+                            <div>
+                                <h5 class="font-bold text-gray-900 mb-3">دسترسی حمل‌ونقل</h5>
+                                <div class="flex flex-wrap gap-3">
+                                    <span class="event-tag">
+                                        <i class="fas fa-subway"></i> ایستگاه مترو ولیعصر
+                                    </span>
+                                    <span class="event-tag">
+                                        <i class="fas fa-bus"></i> خطوط BRT
+                                    </span>
+                                    <span class="event-tag">
+                                        <i class="fas fa-parking"></i> پارکینگ اختصاصی
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Placeholder -->
+                        <div class="map-container flex items-center justify-center">
+                            <div class="text-center text-white p-6">
+                                <i class="fas fa-map-marked-alt text-5xl mb-4"></i>
+                                <div class="text-xl font-bold mb-2">نقشه محل برگزاری</div>
+                                <p class="opacity-90">برای مشاهده جزئیات روی نقشه کلیک کنید</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column (Sidebar) -->
+            <div class="space-y-8">
+                <!-- Booking Card -->
+                <div class="glass-card p-8 sticky top-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">رزرو بلیت</h3>
+                    
+                    <!-- Countdown Timer -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-2xl">
+                        <div class="text-center mb-4">
+                            <div class="text-sm text-gray-600 mb-2">زمان باقی‌مانده تا شروع رویداد</div>
+                            <div id="countdown" class="flex justify-center gap-4">
+                                <div class="countdown-box">
+                                    <div class="text-3xl font-bold text-pink-600">۱۲</div>
+                                    <div class="text-sm text-gray-600">روز</div>
+                                </div>
+                                <div class="countdown-box">
+                                    <div class="text-3xl font-bold text-pink-600">۰۶</div>
+                                    <div class="text-sm text-gray-600">ساعت</div>
+                                </div>
+                                <div class="countdown-box">
+                                    <div class="text-3xl font-bold text-pink-600">۴۵</div>
+                                    <div class="text-sm text-gray-600">دقیقه</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Ticket Selection -->
+                    <div class="space-y-4 mb-8">
+                        <div class="ticket-card p-6 rounded-2xl">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 class="text-lg font-bold text-gray-900">بلیت عادی</h4>
+                                    <p class="text-gray-600 text-sm">دسترسی به تمام سخنرانی‌ها</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-gray-900">۲۹۰,۰۰۰</div>
+                                    <div class="text-gray-600 text-sm">تومان</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 mb-4">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="text-sm text-gray-600">گواهی شرکت در رویداد</span>
+                            </div>
+                            <div class="flex items-center gap-2 mb-4">
+                                <i class="fas fa-check text-green-500"></i>
+                                <span class="text-sm text-gray-600">دسترسی به مطالب آموزشی</span>
+                            </div>
+                            <button class="w-full py-3 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-700 font-semibold rounded-xl hover:from-gray-300 hover:to-gray-400 transition-all">
+                                انتخاب بلیت
+                            </button>
+                        </div>
+                        
+                        <div class="ticket-card popular p-6 rounded-2xl">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="px-3 py-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs rounded-full">پیشنهاد ویژه</span>
+                                        <h4 class="text-lg font-bold text-gray-900">بلیت VIP</h4>
+                                    </div>
+                                    <p class="text-gray-600 text-sm">تمام امکانات + ویژه‌های اختصاصی</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-gray-900">۴۹۰,۰۰۰</div>
+                                    <div class="text-gray-600 text-sm">تومان</div>
+                                </div>
+                            </div>
+                            <div class="space-y-3 mb-4">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-crown text-yellow-500"></i>
+                                    <span class="text-sm text-gray-600">صندلی‌های ردیف اول</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-utensils text-orange-500"></i>
+                                    <span class="text-sm text-gray-600">ناهار و پذیرایی ویژه</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-handshake text-blue-500"></i>
+                                    <span class="text-sm text-gray-600">ملاقات خصوصی با سخنرانان</span>
+                                </div>
+                            </div>
+                            <button class="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all shimmer">
+                                انتخاب بلیت VIP
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Attendee Count -->
+                    <div class="mb-8 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-users text-green-500 text-xl"></i>
+                            <div>
+                                <div class="font-bold text-gray-900">۸۶۵ نفر ثبت‌نام کردند</div>
+                                <div class="text-sm text-gray-600">هم‌اکنون به ما بپیوندید</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="space-y-4">
+                        <button onclick="bookEvent()" class="w-full btn-primary">
+                            <i class="fas fa-shopping-cart"></i>
+                            رزرو و پرداخت
+                        </button>
+                        <button onclick="addToCalendar()" class="w-full py-3 bg-white text-gray-700 font-semibold border-2 border-gray-200 rounded-xl hover:border-pink-300 hover:bg-pink-50 transition-all">
+                            <i class="fas fa-calendar-plus ml-2"></i>
+                            افزودن به تقویم
+                        </button>
+                        <button onclick="shareEvent()" class="w-full py-3 bg-white text-gray-700 font-semibold border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition-all">
+                            <i class="fas fa-share-alt ml-2"></i>
+                            اشتراک‌گذاری رویداد
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Organizer Info -->
+                <div class="glass-card p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">برگزارکننده</h3>
+                    
+                    <div class="organizer-badge mb-6">
+                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=100&h=100&fit=crop" 
+                             alt="گروه فناوری ایرانیان"
+                             class="w-16 h-16 rounded-full object-cover">
+                        <div>
+                            <h4 class="font-bold text-gray-900">گروه فناوری ایرانیان</h4>
+                            <p class="text-gray-600 text-sm">برگزارکننده معتبر رویدادهای تخصصی</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 flex items-center justify-center text-pink-600">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-gray-900">۳۲ رویداد موفق</div>
+                                <div class="text-sm text-gray-600">تجربه برگزاری</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500/10 to-cyan-500/10 flex items-center justify-center text-blue-600">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-gray-900">۴.۹ امتیاز</div>
+                                <div class="text-sm text-gray-600">رضایت شرکت‌کنندگان</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-500/10 to-emerald-500/10 flex items-center justify-center text-green-600">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-gray-900">۱۲,۵۰۰+ نفر</div>
+                                <div class="text-sm text-gray-600">شرکت‌کننده در رویدادها</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="contactOrganizer()" class="w-full mt-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-semibold rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all">
+                        <i class="fas fa-envelope ml-2"></i>
+                        تماس با برگزارکننده
+                    </button>
+                </div>
+                
+                <!-- Similar Events -->
+                <div class="glass-card p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">رویدادهای مشابه</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-white/50 rounded-xl">
+                            <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w-100&h=100&fit=crop" 
+                                 alt="نمایشگاه هنر و طراحی"
+                                 class="w-20 h-20 rounded-xl object-cover">
+                            <div>
+                                <h4 class="font-bold text-gray-900">نمایشگاه هنر و طراحی</h4>
+                                <p class="text-gray-600 text-sm mb-2">۲۵ فروردین ۱۴۰۴</p>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-users text-sm text-gray-500"></i>
+                                    <span class="text-sm text-gray-500">۴۵۰ نفر</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 p-4 bg-white/50 rounded-xl">
+                            <img src="https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=100&h=100&fit=crop" 
+                                 alt="کارگاه مذاکره حرفه‌ای"
+                                 class="w-20 h-20 rounded-xl object-cover">
+                            <div>
+                                <h4 class="font-bold text-gray-900">کارگاه مذاکره حرفه‌ای</h4>
+                                <p class="text-gray-600 text-sm mb-2">۵ اردیبهشت ۱۴۰۴</p>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-users text-sm text-gray-500"></i>
+                                    <span class="text-sm text-gray-500">۱۸۰ نفر</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="exploreSimilarEvents()" class="w-full mt-6 py-3 text-center text-pink-600 font-semibold hover:text-pink-700 transition-colors">
+                        <i class="fas fa-eye ml-2"></i>
+                        مشاهده همه رویدادهای مشابه
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="shareModal" class="share-modal">
+        <div class="glass-card p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">اشتراک‌گذاری رویداد</h3>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <div class="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-whatsapp text-green-500 text-2xl"></i>
+                        <span>واتساپ</span>
+                    </div>
+                    <button onclick="shareOnWhatsApp()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                        اشتراک
+                    </button>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-telegram text-blue-500 text-2xl"></i>
+                        <span>تلگرام</span>
+                    </div>
+                    <button onclick="shareOnTelegram()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                        اشتراک
+                    </button>
+                </div>
+                
+                <div class="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-link text-purple-500 text-2xl"></i>
+                        <span>لینک مستقیم</span>
+                    </div>
+                    <button onclick="copyLink()" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+                        کپی لینک
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center text-gray-600">
+                <p>با اشتراک‌گذاری این رویداد، به دوستان خود کمک کنید تا در این تجربه ارزشمند شرکت کنند.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // وضعیت ذخیره رویداد
+        let isSaved = false;
+        
+        // دکمه ذخیره کردن
+        function toggleSave() {
+            const saveBtn = document.getElementById('saveBtn');
+            const saveIcon = document.getElementById('saveIcon');
+            
+            isSaved = !isSaved;
+            
+            if (isSaved) {
+                saveIcon.className = 'fas fa-bookmark text-xl';
+                saveBtn.classList.add('heart-beat');
+                showNotification('رویداد با موفقیت ذخیره شد');
+                
+                // حذف انیمیشن پس از پایان
+                setTimeout(() => {
+                    saveBtn.classList.remove('heart-beat');
+                }, 600);
+            } else {
+                saveIcon.className = 'far fa-bookmark text-xl';
+                showNotification('رویداد از ذخیره‌شده‌ها حذف شد');
+            }
+        }
+        
+        // سیستم تب‌ها
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // حذف حالت فعال از همه تب‌ها
+                document.querySelectorAll('.tab-btn').forEach(tab => {
+                    tab.classList.remove('active');
+                    tab.classList.remove('border-pink-600');
+                    tab.classList.remove('text-pink-600');
+                    tab.classList.add('text-gray-600');
+                });
+                
+                // اضافه کردن حالت فعال به تب انتخاب شده
+                this.classList.add('active');
+                this.classList.add('border-pink-600');
+                this.classList.add('text-pink-600');
+                this.classList.remove('text-gray-600');
+                
+                // مخفی کردن همه محتواهای تب
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                    content.classList.add('hidden');
+                });
+                
+                // نمایش محتوای تب انتخاب شده
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            });
+        });
+        
+        // سیستم FAQ
+        function toggleFAQ(element) {
+            const faqItem = element.closest('.faq-item');
+            faqItem.classList.toggle('active');
+        }
+        
+        // اشتراک‌گذاری رویداد
+        function shareEvent() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.add('active');
+        }
+        
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            modal.classList.remove('active');
+        }
+        
+        function shareOnWhatsApp() {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('همایش نوآوری فناوری را ببینید!');
+            window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+            closeShareModal();
+            showNotification('در حال انتقال به واتساپ...');
+        }
+        
+        function shareOnTelegram() {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent('همایش نوآوری فناوری را ببینید!');
+            window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+                        closeShareModal();
+            showNotification('در حال انتقال به تلگرام...');
+        }
+        
+        function copyLink() {
+            const link = window.location.href;
+            navigator.clipboard.writeText(link)
+                .then(() => {
+                    showNotification('لینک رویداد کپی شد!');
+                    closeShareModal();
+                })
+                .catch(err => {
+                    console.error('خطا در کپی لینک:', err);
+                    showNotification('خطا در کپی لینک', 'error');
+                });
+        }
+        
+        // رزرو رویداد
+        function bookEvent() {
+            showNotification('در حال انتقال به صفحه رزرو...');
+            // در حالت واقعی به صفحه پرداخت منتقل می‌شود
+            setTimeout(() => {
+                const modalContent = `
+                    <div class="text-center p-8">
+                        <div class="text-6xl mb-6 gradient-text">🎉</div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">آماده‌ای برای شرکت در رویداد؟</h3>
+                        <p class="text-gray-600 mb-8">لطفاً نوع بلیت و تعداد را انتخاب کنید</p>
+                        <div class="space-y-4 mb-8">
+                            <select class="w-full p-4 rounded-xl glass-card border-0">
+                                <option value="normal">بلیت عادی (۲۹۰,۰۰۰ تومان)</option>
+                                <option value="vip">بلیت VIP (۴۹۰,۰۰۰ تومان)</option>
+                            </select>
+                            <div class="flex items-center justify-between p-4 bg-white/50 rounded-xl">
+                                <span>تعداد بلیت</span>
+                                <div class="flex items-center gap-4">
+                                    <button class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300">-</button>
+                                    <span class="text-xl font-bold">1</span>
+                                    <button class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300">+</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="processPayment()" class="w-full btn-primary">
+                            ادامه به پرداخت
+                        </button>
+                    </div>
+                `;
+                showModal('رزرو رویداد', modalContent);
+            }, 1000);
+        }
+        
+        function processPayment() {
+            showNotification('در حال انتقال به درگاه پرداخت...');
+            setTimeout(() => {
+                const successContent = `
+                    <div class="text-center p-8">
+                        <div class="text-6xl mb-6 gradient-text">✅</div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">رزرو با موفقیت انجام شد!</h3>
+                        <p class="text-gray-600 mb-8">بلیت شما به شماره <span class="font-bold text-pink-600">TICKET-00123</span> ثبت شد.</p>
+                        <div class="space-y-4">
+                            <button onclick="downloadTicket()" class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:shadow-lg transition-all">
+                                <i class="fas fa-download ml-2"></i> دانلود بلیت
+                            </button>
+                            <button onclick="addToCalendar()" class="w-full py-3 bg-white text-gray-700 border-2 border-gray-200 rounded-xl hover:border-pink-300 hover:bg-pink-50">
+                                <i class="fas fa-calendar-plus ml-2"></i> افزودن به تقویم
+                            </button>
+                        </div>
+                    </div>
+                `;
+                showModal('پرداخت موفق', successContent);
+            }, 1500);
+        }
+        
+        // افزودن به تقویم
+        function addToCalendar() {
+            showNotification('در حال افزودن رویداد به تقویم...');
+            // در حالت واقعی فایل ICS دانلود می‌شود
+            setTimeout(() => {
+                showNotification('رویداد با موفقیت به تقویم اضافه شد!');
+            }, 1000);
+        }
+        
+        // تماس با برگزارکننده
+        function contactOrganizer() {
+            const contactContent = `
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">تماس با برگزارکننده</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                            <i class="fas fa-phone text-pink-500"></i>
+                            <div>
+                                <div class="font-bold text-gray-900">شماره تماس</div>
+                                <div class="text-gray-600">۰۲۱-۸۸۵۶۳۲۱۰</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                            <i class="fas fa-envelope text-purple-500"></i>
+                            <div>
+                                <div class="font-bold text-gray-900">ایمیل</div>
+                                <div class="text-gray-600">contact@tech-events.ir</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-white/50 rounded-xl">
+                            <i class="fab fa-telegram text-blue-500"></i>
+                            <div>
+                                <div class="font-bold text-gray-900">تلگرام</div>
+                                <div class="text-gray-600">@tech_events</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="startChat()" class="w-full mt-6 btn-primary">
+                        <i class="fas fa-comments ml-2"></i> شروع گفتگو
+                    </button>
+                </div>
+            `;
+            showModal('تماس با برگزارکننده', contactContent);
+        }
+        
+        function startChat() {
+            showNotification('در حال باز کردن چت...');
+            closeModal();
+        }
+        
+        // نوشتن نظر
+        function openReviewModal() {
+            const reviewContent = `
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">ثبت نظر شما</h3>
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-gray-700">امتیاز شما:</span>
+                            <div id="reviewStars" class="flex gap-1">
+                                ${Array(5).fill().map((_, i) => `<i class="far fa-star text-2xl cursor-pointer text-yellow-400 hover:text-yellow-500" data-rating="${i+1}"></i>`).join('')}
+                            </div>
+                        </div>
+                        <textarea 
+                            id="reviewText"
+                            class="w-full p-4 rounded-xl glass-card border-0 h-40"
+                            placeholder="تجربه خود از این رویداد را بنویسید..."
+                        ></textarea>
+                    </div>
+                    <button onclick="submitReview()" class="w-full btn-primary">
+                        <i class="fas fa-paper-plane ml-2"></i> ارسال نظر
+                    </button>
+                </div>
+            `;
+            showModal('ثبت نظر', reviewContent);
+            
+            // افزودن event listener برای ستاره‌ها
+            setTimeout(() => {
+                document.querySelectorAll('#reviewStars i').forEach(star => {
+                    star.addEventListener('mouseover', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        highlightStars(rating);
+                    });
+                    
+                    star.addEventListener('click', function() {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        selectedRating = rating;
+                        highlightStars(rating, true);
+                    });
+                });
+                
+                document.getElementById('reviewStars').addEventListener('mouseleave', function() {
+                    highlightStars(selectedRating || 0);
+                });
+            }, 100);
+        }
+        
+        let selectedRating = 0;
+        
+        function highlightStars(rating, permanent = false) {
+            const stars = document.querySelectorAll('#reviewStars i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.className = 'fas fa-star text-2xl text-yellow-400';
+                } else {
+                    star.className = 'far fa-star text-2xl text-yellow-400';
+                }
+            });
+            
+            if (permanent) {
+                selectedRating = rating;
+            }
+        }
+        
+        function submitReview() {
+            const reviewText = document.getElementById('reviewText').value;
+            if (selectedRating === 0) {
+                showNotification('لطفاً امتیاز خود را انتخاب کنید', 'error');
+                return;
+            }
+            
+            if (!reviewText.trim()) {
+                showNotification('لطفاً نظر خود را بنویسید', 'error');
+                return;
+            }
+            
+            showNotification('نظر شما با موفقیت ثبت شد!');
+            closeModal();
+            
+            // شبیه‌سازی افزودن نظر جدید به لیست
+            setTimeout(() => {
+                const reviewsTab = document.querySelector('[data-tab="reviews"]');
+                if (reviewsTab) {
+                    reviewsTab.innerHTML = '<i class="fas fa-star ml-2"></i> نظرات (۱۲۴۶)';
+                }
+            }, 1000);
+        }
+        
+        // جستجوی رویدادهای مشابه
+        function exploreSimilarEvents() {
+            showNotification('در حال بارگذاری رویدادهای مشابه...');
+            setTimeout(() => {
+                window.location.href = 'events.html?category=conference';
+            }, 1000);
+        }
+        
+        // دانلود بلیت
+        function downloadTicket() {
+            showNotification('در حال دانلود بلیت...');
+            setTimeout(() => {
+                showNotification('بلیت با موفقیت دانلود شد!');
+                closeModal();
+            }, 1500);
+        }
+        
+        // سیستم اطلاع‌رسانی
+        function showNotification(message, type = 'success') {
+            // حذف نوتیفیکیشن قبلی
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // ایجاد نوتیفیکیشن جدید
+            const notification = document.createElement('div');
+            notification.className = `fixed top-6 left-6 z-50 p-4 rounded-xl border backdrop-blur-lg animate-fade-in-up ${
+                type === 'success' ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 text-green-800' :
+                type === 'error' ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200 text-red-800' :
+                'bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200 text-pink-800'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-${type === 'success' ? 'check-circle text-green-500' : type === 'error' ? 'exclamation-circle text-red-500' : 'info-circle text-pink-500'} text-xl"></i>
+                    <span class="font-medium text-lg">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // حذف خودکار پس از 3 ثانیه
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 3000);
+        }
+        
+        // سیستم Modal
+        function showModal(title, content) {
+            // حذف مودال قبلی
+            const existingModal = document.querySelector('.custom-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // ایجاد مودال جدید
+            const modal = document.createElement('div');
+            modal.className = 'custom-modal fixed inset-0 z-50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div class="relative glass-card max-w-md w-full max-h-[90vh] overflow-y-auto animate-fade-in-up">
+                    <div class="sticky top-0 bg-white/80 backdrop-blur-md z-10 border-b border-gray-200 p-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-gray-900">${title}</h3>
+                            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>${content}</div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // بستن با کلیک بیرون
+            modal.querySelector('.fixed.inset-0').addEventListener('click', closeModal);
+            
+            // جلوگیری از اسکرول صفحه اصلی
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            const modal = document.querySelector('.custom-modal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.remove();
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        }
+        
+        // سیستم Countdown
+        function updateCountdown() {
+            // تاریخ رویداد (۱۵ فروردین ۱۴۰۴)
+            const eventDate = new Date('2025-04-04T10:00:00');
+            const now = new Date();
+            const diff = eventDate - now;
+            
+            if (diff <= 0) {
+                document.getElementById('countdown').innerHTML = `
+                    <div class="countdown-box">
+                        <div class="text-3xl font-bold text-pink-600">۰۰</div>
+                        <div class="text-sm text-gray-600">روز</div>
+                    </div>
+                    <div class="countdown-box">
+                        <div class="text-3xl font-bold text-pink-600">۰۰</div>
+                        <div class="text-sm text-gray-600">ساعت</div>
+                    </div>
+                    <div class="countdown-box">
+                        <div class="text-3xl font-bold text-pink-600">۰۰</div>
+                        <div class="text-sm text-gray-600">دقیقه</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            document.getElementById('countdown').innerHTML = `
+                <div class="countdown-box">
+                    <div class="text-3xl font-bold text-pink-600">${days.toString().padStart(2, '0')}</div>
+                    <div class="text-sm text-gray-600">روز</div>
+                </div>
+                <div class="countdown-box">
+                    <div class="text-3xl font-bold text-pink-600">${hours.toString().padStart(2, '0')}</div>
+                    <div class="text-sm text-gray-600">ساعت</div>
+                </div>
+                <div class="countdown-box">
+                    <div class="text-3xl font-bold text-pink-600">${minutes.toString().padStart(2, '0')}</div>
+                    <div class="text-sm text-gray-600">دقیقه</div>
+                </div>
+            `;
+        }
+        
+        // بارگذاری اطلاعات رویداد
+        function loadEventDetails() {
+            // در حالت واقعی از API اطلاعات دریافت می‌شود
+            console.log('بارگذاری اطلاعات رویداد...');
+            updateCountdown();
+            setInterval(updateCountdown, 60000); // بروزرسانی هر دقیقه
+        }
+        
+        // بارگذاری اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('صفحه جزییات رویداد بارگذاری شد');
+            loadEventDetails();
+            
+            // جلوگیری از اسکرول در مودال‌ها
+            document.addEventListener('wheel', function(e) {
+                if (document.querySelector('.custom-modal') || document.querySelector('.share-modal.active')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // بستن مودال با دکمه ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    closeShareModal();
+                }
+            });
+        });
+        
+        // مشاهده جزییات رویدادهای مشابه
+        function viewSimilarEvent(eventId) {
+            showNotification(`در حال بارگذاری رویداد ${eventId}...`);
+            setTimeout(() => {
+                window.location.href = 'event-details.html?id=' + eventId;
+            }, 1000);
+        }
+        
+        // درخواست اطلاعات بیشتر
+        function requestMoreInfo() {
+            const infoContent = `
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">درخواست اطلاعات بیشتر</h3>
+                    <div class="space-y-4 mb-6">
+                        <input type="text" placeholder="نام و نام خانوادگی" class="w-full p-3 rounded-xl glass-card border-0">
+                        <input type="email" placeholder="ایمیل" class="w-full p-3 rounded-xl glass-card border-0">
+                        <input type="tel" placeholder="شماره تماس" class="w-full p-3 rounded-xl glass-card border-0">
+                        <textarea placeholder="سوال یا درخواست خود را بنویسید..." class="w-full p-3 rounded-xl glass-card border-0 h-32"></textarea>
+                    </div>
+                    <button onclick="submitInfoRequest()" class="w-full btn-primary">
+                        <i class="fas fa-paper-plane ml-2"></i> ارسال درخواست
+                    </button>
+                </div>
+            `;
+            showModal('درخواست اطلاعات', infoContent);
+        }
+        
+        function submitInfoRequest() {
+            showNotification('درخواست شما با موفقیت ارسال شد!');
+            closeModal();
+        }
+        
+        // بارگذاری نظرات بیشتر
+        function loadMoreReviews() {
+            showNotification('در حال بارگذاری نظرات بیشتر...');
+            // در حالت واقعی از API نظرات جدید دریافت می‌شود
+            setTimeout(() => {
+                const newReview = `
+                    <div class="review-card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" 
+                                     alt="رضا محمودی"
+                                     class="w-12 h-12 rounded-full object-cover">
+                                <div>
+                                    <h4 class="font-bold text-gray-900">رضا محمودی</h4>
+                                    <div class="rating-stars text-sm">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-gray-500 text-sm">همین حالا</span>
+                        </div>
+                        <p class="text-gray-600">
+                            رویداد بسیار عالی بود. سازماندهی فوق‌العاده و محتوای ارزشمند. ممنون از برگزارکنندگان.
+                        </p>
+                    </div>
+                `;
+                
+                document.getElementById('reviews-tab').querySelector('.space-y-6').innerHTML += newReview;
+                showNotification('۳ نظر جدید بارگذاری شد');
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
